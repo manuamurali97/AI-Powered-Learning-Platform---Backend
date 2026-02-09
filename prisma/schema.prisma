@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* =======================
+   ENUMS (FIRST)
+======================= */
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum JobType {
+  EXTRACT_TEXT
+  GENERATE_SUMMARY
+  GENERATE_QUESTIONS
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+/* =======================
+   MODELS (ORDER MATTERS)
+======================= */
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  documents Document[]
+
+ 
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  title     String
+  filePath  String
+  status    DocumentStatus @default(PENDING)
+  createdAt DateTime       @default(now())
+
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+
+  jobs      ProcessingJob[]
+  summaries Summary[]
+  questions Question[]
+
+  extracted ExtractedText?
+}
+
+model ExtractedText {
+  id         String   @id @default(uuid())
+  content    String
+  createdAt  DateTime @default(now())
+
+  documentId String   @unique
+  document   Document @relation(fields: [documentId], references: [id])
+}
+
+
+model ProcessingJob {
+  id         String    @id @default(uuid())
+  documentId String
+  type       JobType
+  status     JobStatus @default(PENDING)
+  error      String?
+
+  retries    Int       @default(0)
+  maxRetries Int       @default(3)
+  
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  document   Document @relation(fields: [documentId], references: [id])
+}
+
+model Summary {
+  id         String   @id @default(uuid())
+  content    String
+  documentId String
+  createdAt  DateTime @default(now())
+
+  document   Document @relation(fields: [documentId], references: [id])
+}
+
+model Question {
+  id         String   @id @default(uuid())
+  content    String
+  documentId String
+  createdAt  DateTime @default(now())
+
+  document   Document @relation(fields: [documentId], references: [id])
+}
