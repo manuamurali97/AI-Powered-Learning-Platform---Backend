@@ -1,3 +1,4 @@
+## AI Powered Document Learning Platform
 This repository contains the backend implementation of an AI-poered document learning platform.
 The system ingests documents, process them asynchrously, and generate learning artifacts such as summaries and study questions.
 
